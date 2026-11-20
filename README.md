@@ -11,3 +11,5 @@ mvn clean test compile exec:java
 Booking залежить від TimeIntervalStorage. @Inject-конструктор отримує інтерфейс у final-поле. CoworkingModule прив'язує його до SqliteTimeIntervalStorage, а @Provides @Singleton надає Connection. Main отримує Booking через Injector; модель не Singleton. SQL є тільки в інфраструктурному сховищі. Одне INSERT — атомарна транзакція SQLite в autoCommit.
 Інтервали: незмінний id, обов'язкові resident/space/start/end, локальний ISO-час до хвилини, start<end, заборона перетинів [start,end) для одного місця. Сценарії підтвердження, рахунку, тарифу й плану збережено.
 Використано Codex, Spec Kit0.15.0. Результати залишені локально за дорученням власника.
+
+Швидкий запуск на цьому ПК: `powershell -NoProfile -File .\run.ps1`. Для окремого розпакування потрібні JDK21+ і Maven (для 3–4).

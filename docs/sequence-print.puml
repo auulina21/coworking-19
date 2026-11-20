@@ -1,0 +1,30 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam nodesep 35
+skinparam ranksep 45
+participant "Main" as M
+participant "Guice" as G
+participant "CoworkingModule" as Mod
+participant "Injector" as I
+participant "SqliteTimeIntervalStorage" as S
+participant "Booking" as B
+participant "StaticHtmlExporter" as H
+M->>G: createInjector(new CoworkingModule())
+G->>Mod: configure(): bind Storage to SqliteStorage
+G-->>M: Injector
+M->>I: getInstance(Booking.class)
+I->>Mod: connection() @Provides @Singleton
+I->>S: new(connection)
+I->>B: @Inject Booking(storage)
+I-->>M: Booking
+M->>B: add(interval)
+B->>S: save(interval)
+S-->>B: записано SQLite
+B-->>M: Інтервал додано
+M->>B: confirm(access), invoice через Accountant
+M->>S: findAll()
+S-->>M: інтервали з SQLite
+M->>H: write(intervals, target/intervals.html)
+@enduml

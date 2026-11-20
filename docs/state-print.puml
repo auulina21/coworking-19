@@ -1,0 +1,23 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam nodesep 35
+skinparam ranksep 45
+[*] --> DRAFT
+DRAFT --> DRAFT : add
+DRAFT --> CONFIRMED : confirm()
+CONFIRMED : invoice / read
+DRAFT --> CANCELLED : cancel()
+CONFIRMED --> CANCELLED : cancel()
+CANCELLED --> [*]
+note left of DRAFT
+Лише коректні інтервали.
+Підтвердження потребує
+хоча б одного інтервалу.
+end note
+note left of CONFIRMED
+Зміни інтервалів
+заборонені.
+end note
+@enduml
