@@ -3,6 +3,7 @@ import ua.coworking.model.*;
 /** Детермінований сценарій для повторюваної перевірки всіх ролей. */
 public final class Main {
     public static void main(String[] args) {
+        System.setOut(new java.io.PrintStream(System.out,true,java.nio.charset.StandardCharsets.UTF_8));
         System.out.println("=== Коворкінг: імітаційний прототип, варіант 19 ===");
         Booking booking = new Booking("B19");
         Resident resident=new Resident("R19", "Олена");

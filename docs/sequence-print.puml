@@ -1,0 +1,25 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam nodesep 35
+skinparam ranksep 45
+actor "Резидент" as R
+participant "Booking" as B
+participant "TimeInterval" as T
+participant "ConsoleAccessControl" as A
+participant "Accountant" as C
+R->>T: new(id,resident,space,start,end)
+R->>B: add(interval)
+alt некоректний або перетин
+ B-->>R: Відмова без зміни колекції
+else вільний інтервал
+ B-->>R: Інтервал додано
+end
+R->>B: confirm(access)
+B->>A: grant(bookingId)
+A-->>B: Імітаційний доступ надано
+B-->>R: Підтверджено
+C->>B: getState(), hours()
+C-->>R: Рахунок за період
+@enduml
