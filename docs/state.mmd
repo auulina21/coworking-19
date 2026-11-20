@@ -1,6 +1,6 @@
 stateDiagram-v2
 [*] --> DRAFT
-DRAFT --> DRAFT : add / update / delete interval
+DRAFT --> DRAFT : add interval
 DRAFT --> CONFIRMED : confirm [intervals not empty]
 CONFIRMED --> CONFIRMED : invoice / read
 DRAFT --> CANCELLED : cancel
