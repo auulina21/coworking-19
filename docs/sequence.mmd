@@ -1,19 +1,24 @@
 sequenceDiagram
-actor R as Резидент
+participant M as Main
+participant G as Guice
+participant Mod as CoworkingModule
+participant I as Injector
+participant S as SqliteTimeIntervalStorage
 participant B as Booking
-participant T as TimeInterval
-participant A as ConsoleAccessControl
-participant C as Accountant
-R->>T: new(id,resident,space,start,end)
-R->>B: add(interval)
-alt некоректний або перетин
- B-->>R: Відмова без зміни колекції
-else вільний інтервал
- B-->>R: Інтервал додано
-end
-R->>B: confirm(access)
-B->>A: grant(bookingId)
-A-->>B: Імітаційний доступ надано
-B-->>R: Підтверджено
-C->>B: getState(), hours()
-C-->>R: Рахунок за період
+participant H as StaticHtmlExporter
+M->>G: createInjector(new CoworkingModule())
+G->>Mod: configure(): bind Storage to SqliteStorage
+G-->>M: Injector
+M->>I: getInstance(Booking.class)
+I->>Mod: connection() @Provides @Singleton
+I->>S: new(connection)
+I->>B: @Inject Booking(storage)
+I-->>M: Booking
+M->>B: add(interval)
+B->>S: save(interval)
+S-->>B: записано SQLite
+B-->>M: Інтервал додано
+M->>B: confirm(access), invoice через Accountant
+M->>S: findAll()
+S-->>M: інтервали з SQLite
+M->>H: write(intervals, target/intervals.html)

@@ -37,7 +37,7 @@
   {
     "name": "Booking",
     "responsibility": "Володіти інтервалами, перевіряти правила та переходи станів; координувати збереження через абстракцію",
-    "collaboration": "TimeInterval, BookingState, AccessControl"
+    "collaboration": "TimeInterval, BookingState, AccessControl, TimeIntervalStorage"
   },
   {
     "name": "AccessControl",
@@ -48,5 +48,30 @@
     "name": "ConsoleAccessControl",
     "responsibility": "Імітувати зовнішню систему контролю доступу",
     "collaboration": "AccessControl"
+  },
+  {
+    "name": "TimeIntervalStorage",
+    "responsibility": "Контракт збереження й читання; на 004 також CRUD",
+    "collaboration": "Booking, TimeInterval, SqliteTimeIntervalStorage"
+  },
+  {
+    "name": "SqliteTimeIntervalStorage",
+    "responsibility": "Виконувати параметризовані SQL-запити до однієї таблиці",
+    "collaboration": "Connection, TimeIntervalStorage, TimeInterval"
+  },
+  {
+    "name": "CoworkingModule",
+    "responsibility": "Прив’язувати інтерфейси, надавати JDBC-з’єднання",
+    "collaboration": "AbstractModule, Connection, TimeIntervalStorage"
+  },
+  {
+    "name": "Main",
+    "responsibility": "Створити Injector і компонувати застосунок",
+    "collaboration": "Guice, Injector, Booking, CoworkingModule"
+  },
+  {
+    "name": "StaticHtmlExporter",
+    "responsibility": "Створювати екрановану HTML-таблицю з прочитаних даних",
+    "collaboration": "TimeInterval"
   }
 ]

@@ -59,7 +59,8 @@ class Booking {
   -String id
   -BookingState state
   -List~TimeInterval~ intervals
-  +Booking(id)
+  -TimeIntervalStorage storage
+  +Booking(storage)
   +add(interval) String
   +getIntervals() List~TimeInterval~
   +getState() BookingState
@@ -76,6 +77,42 @@ class ConsoleAccessControl {
   +ConsoleAccessControl()
   +grant(bookingId) String
 }
+class TimeIntervalStorage {
+  <<interface>>
+  +save(interval) void
+  +findAll() List~TimeInterval~
+}
+class SqliteTimeIntervalStorage {
+  -Connection connection
+  +SqliteTimeIntervalStorage(connection)
+  +save(interval) void
+  +findAll() List~TimeInterval~
+}
+class CoworkingModule {
+  +configure() void
+  +connection() Connection
+}
+class AbstractModule {
+  <<abstract>>
+  +configure() void
+}
+class Injector {
+  <<interface>>
+  +getInstance(type) Object
+}
+class Guice {
+  +createInjector(module) Injector
+}
+class Connection {
+  <<interface>>
+  +close() void
+}
+class Main {
+  +main(args) void
+}
+class StaticHtmlExporter {
+  +write(intervals, path) void
+}
 CoworkingMember <|-- Resident
 CoworkingMember <|-- SpaceManager
 CoworkingMember <|-- Accountant
@@ -89,3 +126,21 @@ ConsoleAccessControl ..|> AccessControl
 Resident ..> Booking : book
 Resident ..> TimeInterval
 Accountant ..> Booking : invoice
+Booking --> TimeIntervalStorage : constructor Inject
+TimeIntervalStorage ..> TimeInterval
+SqliteTimeIntervalStorage ..|> TimeIntervalStorage
+SqliteTimeIntervalStorage --> Connection
+SqliteTimeIntervalStorage ..> TimeInterval
+AbstractModule <|-- CoworkingModule
+CoworkingModule ..> TimeIntervalStorage : bind
+CoworkingModule ..> SqliteTimeIntervalStorage : to
+CoworkingModule ..> Connection : Provides Singleton
+Main ..> Guice
+Main ..> CoworkingModule
+Main ..> Injector
+Injector ..> Booking : getInstance
+Guice ..> Injector
+Main ..> Booking
+Main ..> StaticHtmlExporter
+StaticHtmlExporter ..> TimeInterval
+Main ..> TimeIntervalStorage

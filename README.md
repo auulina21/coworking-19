@@ -1,16 +1,13 @@
-# Coworking — практика 2
-Система бронювання коворкінгу. Варіант 19, КІ-26. Три актори й чотири сценарії: бронювання, план розміщення, рахунок, тариф наступного місяця.
-## Збирання і запуск (PowerShell, JDK 21+)
+# Coworking — практика 3, гілка di
+Система бронювання коворкінгу, варіант19. Попередні актори й сценарії збережені; композиція Booking–TimeInterval тепер зберігається в SQLite.
+## Збирання і запуск
+JDK21+ і Maven3.9.11. Якщо Maven не у PATH, можна скористатися `..\tools\apache-maven-3.9.11\bin\mvn.cmd` у робочому каталозі на цьому ПК.
 ```powershell
-New-Item -ItemType Directory -Force bin | Out-Null
-Get-ChildItem src -Recurse -Filter *.java | ForEach-Object FullName | Set-Content sources.txt
-javac -encoding UTF-8 --release 21 -d bin @sources.txt
-java -Dfile.encoding=UTF-8 -cp bin ua.coworking.Main
+mvn clean test compile exec:java
 ```
-У PowerShell аргумент @sources.txt потрібно передати як рядок: `'@sources.txt'`, щоб уникнути splatting.
-Програма виконує відтворюваний демонстраційний сценарій без введення з консолі. Усі зовнішні операції імітуються. Логи фактичного запуску зберігаються окремо у пакеті звіту.
-## Архітектура
-CoworkingMember — абстракція спільної ідентичності, final getId; ролі перевизначають role і реалізують TariffPlan. Resident.book перевантажено. Booking володіє TimeInterval (композиція); залежність від AccessControl передається в confirm.
-SOLID: ролі мають окремі обов'язки; інтерфейс доступу дозволяє нову реалізацію; підтипи зберігають getId/getName; малі інтерфейси не нав'язують зайвих методів; Booking не створює зовнішньої системи.
-Навчальна межа: один Booking на процес. Час локальний, [start,end), без перетинів для одного місця. Зміни лише DRAFT. Рахунок 150 грн/год лише CONFIRMED; tariff STAFF для службових ролей не змінює тариф резидента.
-Використано Codex і Spec Kit0.15.0. Авторство ШІ та перевірки зазначені у звітах. Публікація і подання у Moodle не виконані за вказівкою власника.
+Файл `target/coworking.db`, таблиця `time_intervals`. Після сценаріїв `target/intervals.html` формується з даних повторного читання SQLite. Відкрийте HTML браузером через локальний статичний сервер.
+Повторний запуск зберігає наявні дані; дублі отримують відмову. Для чистої демонстрації `mvn clean` видаляє попередній target. Не запускайте clean, якщо потрібно зберегти введені раніше дані.
+## DIP і DI
+Booking залежить від TimeIntervalStorage. @Inject-конструктор отримує інтерфейс у final-поле. CoworkingModule прив'язує його до SqliteTimeIntervalStorage, а @Provides @Singleton надає Connection. Main отримує Booking через Injector; модель не Singleton. SQL є тільки в інфраструктурному сховищі. Одне INSERT — атомарна транзакція SQLite в autoCommit.
+Інтервали: незмінний id, обов'язкові resident/space/start/end, локальний ISO-час до хвилини, start<end, заборона перетинів [start,end) для одного місця. Сценарії підтвердження, рахунку, тарифу й плану збережено.
+Використано Codex, Spec Kit0.15.0. Результати залишені локально за дорученням власника.

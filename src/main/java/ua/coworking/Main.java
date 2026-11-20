@@ -1,10 +1,17 @@
 package ua.coworking;
 import ua.coworking.model.*;
+import ua.coworking.infrastructure.CoworkingModule;
+import com.google.inject.*;
+import java.sql.Connection;
+import java.nio.file.Path;
 /** Детермінований сценарій для повторюваної перевірки всіх ролей. */
 public final class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        System.setOut(new java.io.PrintStream(System.out,true,java.nio.charset.StandardCharsets.UTF_8));
+        Injector injector=Guice.createInjector(new CoworkingModule());
+        try (Connection connection=injector.getInstance(Connection.class)) {
         System.out.println("=== Коворкінг: імітаційний прототип, варіант 19 ===");
-        Booking booking = new Booking("B19");
+        Booking booking = injector.getInstance(Booking.class);
         Resident resident=new Resident("R19", "Олена");
         SpaceManager manager=new SpaceManager("M19", "Андрій");
         Accountant accountant=new Accountant("A19", "Марія");
@@ -27,5 +34,9 @@ public final class Main {
         System.out.println("Прийнято інтервалів: "+booking.getIntervals().size());
         System.out.println(booking.cancel());
         System.out.println(booking.cancel());
+        var items=injector.getInstance(TimeIntervalStorage.class).findAll();
+        new StaticHtmlExporter().write(items,Path.of("target/intervals.html"));
+        System.out.println("SQLite: "+items.size()+" рядків. HTML: target/intervals.html");
+        }
     }
 }

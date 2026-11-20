@@ -1,11 +1,16 @@
 package ua.coworking.model;
 import java.time.*;
+import com.google.inject.Inject;
 import java.util.*;
 public final class Booking {
     private final String id;
     private BookingState state = BookingState.DRAFT;
     private final List<TimeInterval> intervals = new ArrayList<>();
-    public Booking(String id) { this.id = Objects.requireNonNull(id); }
+    private final TimeIntervalStorage storage;
+    @Inject public Booking(TimeIntervalStorage storage) {
+        this.id="B19";this.storage=Objects.requireNonNull(storage);
+        intervals.addAll(storage.findAll());
+    }
     public String getId() { return id; }
     public BookingState getState() { return state; }
     public List<TimeInterval> getIntervals() { return List.copyOf(intervals); }
@@ -28,7 +33,7 @@ public final class Booking {
         if (state != BookingState.DRAFT) return "Відмова: зміни дозволені лише в DRAFT.";
         String error=validate(t,null);
         if (error != null) return "Відмова: "+error;
-        intervals.add(t); return "Інтервал додано: "+t.id()+" ("+t.space()+").";
+        storage.save(t); intervals.clear(); intervals.addAll(storage.findAll()); return "Інтервал додано: "+t.id()+" ("+t.space()+").";
     }
     public synchronized String confirm(AccessControl access) {
         if (state != BookingState.DRAFT || intervals.isEmpty()) return "Відмова: підтвердження потребує DRAFT і хоча б одного інтервалу.";
