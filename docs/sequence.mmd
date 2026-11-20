@@ -1,0 +1,19 @@
+sequenceDiagram
+actor R as Резидент
+participant B as Booking
+participant T as TimeInterval
+participant A as ConsoleAccessControl
+participant C as Accountant
+R->>T: new(id,resident,space,start,end)
+R->>B: add(interval)
+alt некоректний або перетин
+ B-->>R: Відмова без зміни колекції
+else вільний інтервал
+ B-->>R: Інтервал додано
+end
+R->>B: confirm(access)
+B->>A: grant(bookingId)
+A-->>B: Імітаційний доступ надано
+B-->>R: Підтверджено
+C->>B: getState(), hours()
+C-->>R: Рахунок за період

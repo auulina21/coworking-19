@@ -1,0 +1,52 @@
+[
+  {
+    "name": "CoworkingMember",
+    "responsibility": "Зберігати ідентичність учасника, оголошувати роль; final getId гарантує стабільний ID",
+    "collaboration": "Resident, SpaceManager, Accountant"
+  },
+  {
+    "name": "TariffPlan",
+    "responsibility": "Визначати контракт тарифного плану",
+    "collaboration": "Resident, SpaceManager, Accountant"
+  },
+  {
+    "name": "Resident",
+    "responsibility": "Бронювати відвідування; запланувати тариф наступного місяця",
+    "collaboration": "Booking, TimeInterval, TariffPlan"
+  },
+  {
+    "name": "SpaceManager",
+    "responsibility": "Змінювати опис плану простору",
+    "collaboration": "CoworkingMember, TariffPlan"
+  },
+  {
+    "name": "Accountant",
+    "responsibility": "Обчислювати імітаційний рахунок лише підтвердженому бронюванню",
+    "collaboration": "Booking, TariffPlan"
+  },
+  {
+    "name": "TimeInterval",
+    "responsibility": "Незмінно зберігати ID, резидента, місце та межі часу",
+    "collaboration": "Booking"
+  },
+  {
+    "name": "BookingState",
+    "responsibility": "Перелічувати стани життєвого циклу",
+    "collaboration": "Booking"
+  },
+  {
+    "name": "Booking",
+    "responsibility": "Володіти інтервалами, перевіряти правила та переходи станів; координувати збереження через абстракцію",
+    "collaboration": "TimeInterval, BookingState, AccessControl"
+  },
+  {
+    "name": "AccessControl",
+    "responsibility": "Контракт надання доступу",
+    "collaboration": "Booking, ConsoleAccessControl"
+  },
+  {
+    "name": "ConsoleAccessControl",
+    "responsibility": "Імітувати зовнішню систему контролю доступу",
+    "collaboration": "AccessControl"
+  }
+]

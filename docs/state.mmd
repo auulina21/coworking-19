@@ -1,0 +1,14 @@
+stateDiagram-v2
+[*] --> DRAFT
+DRAFT --> DRAFT : add / update / delete interval
+DRAFT --> CONFIRMED : confirm [intervals not empty]
+CONFIRMED --> CONFIRMED : invoice / read
+DRAFT --> CANCELLED : cancel
+CONFIRMED --> CANCELLED : cancel
+CANCELLED --> [*]
+note right of DRAFT
+Некоректні дані не змінюють стан
+end note
+note right of CONFIRMED
+Зміни інтервалів заборонені
+end note

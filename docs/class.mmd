@@ -1,0 +1,91 @@
+classDiagram
+direction TB
+class CoworkingMember {
+  <<abstract>>
+  -String id
+  -String name
+  +CoworkingMember(id, name)
+  +getId() String
+  +getName() String
+  +role() String
+}
+class TariffPlan {
+  <<interface>>
+  +tariff() String
+}
+class Resident {
+  -String currentTariff
+  -String nextTariff
+  +Resident(id, name)
+  +role() String
+  +tariff() String
+  +book(booking, interval) String
+  +book(booking, space, start, end) String
+  +changeTariff(next) String
+}
+class SpaceManager {
+  -String layout
+  +SpaceManager(id, name)
+  +role() String
+  +tariff() String
+  +manageLayout(layout) String
+}
+class Accountant {
+  +Accountant(id, name)
+  +role() String
+  +tariff() String
+  +invoice(booking) String
+}
+class TimeInterval {
+  -String id
+  -String resident
+  -String space
+  -String start
+  -String end
+  +TimeInterval(id, resident, space, start, end)
+  +id() String
+  +resident() String
+  +space() String
+  +start() String
+  +end() String
+}
+class BookingState {
+  <<enumeration>>
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+class Booking {
+  -String id
+  -BookingState state
+  -List~TimeInterval~ intervals
+  +Booking(id)
+  +add(interval) String
+  +getIntervals() List~TimeInterval~
+  +getState() BookingState
+  +getId() String
+  +confirm(access) String
+  +cancel() String
+  +hours() double
+}
+class AccessControl {
+  <<interface>>
+  +grant(bookingId) String
+}
+class ConsoleAccessControl {
+  +ConsoleAccessControl()
+  +grant(bookingId) String
+}
+CoworkingMember <|-- Resident
+CoworkingMember <|-- SpaceManager
+CoworkingMember <|-- Accountant
+Resident ..|> TariffPlan
+SpaceManager ..|> TariffPlan
+Accountant ..|> TariffPlan
+Booking "1" *-- "0..*" TimeInterval : володіє
+Booking --> BookingState
+Booking ..> AccessControl : confirm
+ConsoleAccessControl ..|> AccessControl
+Resident ..> Booking : book
+Resident ..> TimeInterval
+Accountant ..> Booking : invoice

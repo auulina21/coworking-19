@@ -1,0 +1,18 @@
+@startuml
+!pragma layout smetana
+left to right direction
+actor "Резидент" as Resident
+actor "Менеджер простору" as Manager
+actor "Бухгалтер" as Accountant
+rectangle "Система бронювання коворкінгу" {
+ usecase "Забронювати робоче місце\nабо переговорну" as Book
+ usecase "Керувати планом\nрозміщення" as Layout
+ usecase "Виставити рахунок\nза період користування" as Invoice
+ usecase "Змінити тариф\nна наступний місяць" as Tariff
+}
+Resident --> Book
+Resident --> Tariff
+Resident --> Invoice : отримує
+Manager --> Layout
+Accountant --> Invoice
+@enduml
