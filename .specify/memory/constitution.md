@@ -1,4 +1,4 @@
-<!-- Sync Impact: 1.0.0 → 2.0.0. Змінено технологічні межі етапу. TODO: немає. -->
+<!-- Sync Impact: 2.0.0 → 3.0.0. Змінено технологічні межі етапу. TODO: немає. -->
 # Coworking Constitution
 
 ## Core Principles
@@ -13,10 +13,10 @@
 ### V. Перевірка
 Сценарії та відмови перевіряються фактичним запуском. Логи й знімки фіксують реальні результати; не вигадувати виконання команд.
 ## Технологічні межі
-Maven, Google Guice 7 і SQLite у файлі target/coworking.db дозволені. SQL лише у SqliteTimeIntervalStorage. Booking залежить від TimeIntervalStorage; конструкторне впровадження з final-полем.
-
+Maven, Google Guice 7 і SQLite у файлі target/coworking.db дозволені. SQL лише у SqliteTimeIntervalStorage. Booking залежить від TimeIntervalStorage; конструкторне впровадження з final-полем. Javalin 6 дозволений лише в JavalinWebServer. Локальний вебсервер 127.0.0.1:8080; HTML/CSS/JS без CDN. Консольне введення і генератор статичного звіту замінені MVC.
+Модель перевіряє правила й не знає HTTP. Контролер викликає модель і вигляд. Вигляд перетворює результат на HTTP. Лише вебадаптер залежить від Javalin/Jackson. Singleton лише для інфраструктури.
 ## Процес розробки
 specify → clarify → plan → checklist → tasks → analyze → implement → converge. Перед кодом фіксується специфікація. Коміти локальні, публікація за рішенням власника.
 ## Governance
 Поправка вимагає нової версії, пояснення причини й повторної перевірки. Несумісні зміни збільшують MAJOR. Конституцію перевіряти перед реалізацією.
-**Version**: 2.0.0 | **Ratified**: 2026-11-20 | **Last Amended**: 2026-11-20
+**Version**: 3.0.0 | **Ratified**: 2026-11-20 | **Last Amended**: 2026-11-20
