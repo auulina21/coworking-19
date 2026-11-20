@@ -1,0 +1,39 @@
+@startuml
+!pragma layout smetana
+actor "Користувач" as User
+node "Jetty 11 / localhost:8080" as Jetty
+database "SQLite\ncoworking.db" as DB
+package view {
+ [index.html / script.js / style.css] as Page
+ [CoworkingWebView] as View
+ [WebResponse] as Response
+}
+package controller {
+ [CoworkingController] as Controller
+}
+package model {
+ [Booking / TimeInterval] as Model
+ () TimeIntervalStorage as Storage
+}
+package infrastructure {
+ [Main] as Main
+ [CoworkingModule] as Module
+ () WebServer as Server
+ [JavalinWebServer] as Adapter
+ [SqliteTimeIntervalStorage] as Sqlite
+}
+User --> Page
+Page --> Jetty : HTTP / JSON
+Jetty --> Adapter
+Adapter --> Controller
+Controller --> Model
+Controller --> View
+View --> Response
+Model --> Storage
+Sqlite ..|> Storage
+Sqlite --> DB
+Adapter ..|> Server
+Main --> Server
+Module ..> Storage : bind
+Module ..> Server : bind
+@enduml

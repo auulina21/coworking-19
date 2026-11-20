@@ -24,4 +24,15 @@ public final class SqliteTimeIntervalStorage implements TimeIntervalStorage {
         } catch (SQLException ex) { throw new IllegalStateException("Не вдалося прочитати інтервали.",ex); }
         return List.copyOf(result);
     }
+
+    @Override public synchronized boolean update(TimeInterval t) {
+        try(PreparedStatement p=connection.prepareStatement("UPDATE time_intervals SET resident=?,space=?,start=?,end=? WHERE id=?")) {
+            p.setString(1,t.resident());p.setString(2,t.space());p.setString(3,t.start());p.setString(4,t.end());p.setString(5,t.id());return p.executeUpdate()==1;
+        } catch(SQLException ex) {throw new IllegalStateException("Не вдалося змінити інтервал.",ex);}
+    }
+    @Override public synchronized boolean delete(String id) {
+        try(PreparedStatement p=connection.prepareStatement("DELETE FROM time_intervals WHERE id=?")) {
+            p.setString(1,id);return p.executeUpdate()==1;
+        } catch(SQLException ex) {throw new IllegalStateException("Не вдалося видалити інтервал.",ex);}
+    }
 }

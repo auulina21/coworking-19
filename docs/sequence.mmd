@@ -1,24 +1,48 @@
 sequenceDiagram
-participant M as Main
-participant G as Guice
-participant Mod as CoworkingModule
-participant I as Injector
-participant S as SqliteTimeIntervalStorage
+box view
+participant P as index.html + script.js
+end
+box infrastructure
+participant W as JavalinWebServer
+end
+box controller
+participant C as CoworkingController
+end
+box model
 participant B as Booking
-participant H as StaticHtmlExporter
-M->>G: createInjector(new CoworkingModule())
-G->>Mod: configure(): bind Storage to SqliteStorage
-G-->>M: Injector
-M->>I: getInstance(Booking.class)
-I->>Mod: connection() @Provides @Singleton
-I->>S: new(connection)
-I->>B: @Inject Booking(storage)
-I-->>M: Booking
-M->>B: add(interval)
-B->>S: save(interval)
-S-->>B: записано SQLite
-B-->>M: Інтервал додано
-M->>B: confirm(access), invoice через Accountant
-M->>S: findAll()
-S-->>M: інтервали з SQLite
-M->>H: write(intervals, target/intervals.html)
+end
+box infrastructure
+participant S as SqliteTimeIntervalStorage
+participant DB as SQLite
+end
+box view
+participant V as CoworkingWebView
+end
+P->>W: POST /api/coworking (JSON)
+W->>C: create(values)
+C->>B: create(new TimeInterval(...))
+B->>S: findAll()
+S->>DB: SELECT
+DB-->>B: збережені інтервали
+alt порушено правила
+ B-->>C: OperationResult INVALID/FORBIDDEN
+else коректно
+ B->>S: save(interval)
+ S->>DB: INSERT
+ B->>S: findAll() оновити колекцію
+ B-->>C: OperationResult SUCCESS
+end
+C->>V: result(result,true)
+V-->>C: WebResponse(status,body)
+C-->>W: WebResponse
+W-->>P: JSON і HTTP 201/400/409
+P->>W: GET /api/coworking
+W->>C: read()
+C->>B: read()
+B->>S: findAll()
+S->>DB: SELECT
+DB-->>B: дані
+B-->>C: список
+C->>V: read(items)
+V-->>P: через контролер і адаптер: 200 items
+Note over P,DB: PUT /{id} і DELETE /{id} проходять тим самим шляхом

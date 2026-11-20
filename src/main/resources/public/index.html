@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Коворкінг — бронювання</title><link rel="stylesheet" href="style.css"><script defer src="script.js"></script></head>
+<body><header><a href="/" class="brand">КОВОРКІНГ<span>простір для роботи</span></a><span class="header-note">Планування відвідувань</span></header>
+<main><section class="intro"><p class="eyebrow">БРОНЮВАННЯ ПРОСТОРУ</p><h1>Знайдіть час для роботи.</h1><p>Робоче місце чи переговорна — усі ваші інтервали в одному списку.</p></section>
+<div id="message" role="status" aria-live="polite" hidden></div>
+<div class="workspace"><section aria-labelledby="list-title"><div class="section-heading"><h2 id="list-title">Заплановані відвідування</h2><span id="count">0 інтервалів</span></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Резидент</th><th>Місце</th><th>Початок</th><th>Кінець</th><th>Дії</th></tr></thead><tbody id="rows"></tbody></table></div><p id="empty" class="empty">Відвідувань поки немає. Додайте перший інтервал у формі.</p><button id="refresh" class="text-button" type="button">Оновити список</button></section>
+<aside><h2 id="form-title">Новий інтервал</h2><p class="hint">Усі поля обов'язкові. Час вказуйте за місцевим часом.</p><form id="form" novalidate>
+<label for="id">Ідентифікатор</label><input id="id" name="id" autocomplete="off" placeholder="Наприклад, T19">
+<label for="resident">Резидент</label><input id="resident" name="resident" placeholder="Ім’я резидента">
+<label for="space">Місце</label><input id="space" name="space" placeholder="Переговорна A або місце 1">
+<label for="start">Початок</label><input id="start" name="start" type="datetime-local">
+<label for="end">Кінець</label><input id="end" name="end" type="datetime-local">
+<div class="form-actions"><button id="save" type="submit">Додати інтервал</button><button id="cancel" type="button" class="secondary" hidden>Скасувати</button></div></form></aside></div>
+<footer><span>Система бронювання коворкінгу</span><span>Локальний навчальний проєкт</span></footer></main></body></html>

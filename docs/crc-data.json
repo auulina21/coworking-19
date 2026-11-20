@@ -62,7 +62,7 @@
   {
     "name": "CoworkingModule",
     "responsibility": "Прив’язувати інтерфейси, надавати JDBC-з’єднання",
-    "collaboration": "AbstractModule, Connection, TimeIntervalStorage"
+    "collaboration": "AbstractModule, Connection, TimeIntervalStorage, WebServer"
   },
   {
     "name": "Main",
@@ -70,8 +70,43 @@
     "collaboration": "Guice, Injector, Booking, CoworkingModule"
   },
   {
-    "name": "StaticHtmlExporter",
-    "responsibility": "Створювати екрановану HTML-таблицю з прочитаних даних",
-    "collaboration": "TimeInterval"
+    "name": "OperationResult",
+    "responsibility": "Передавати результат бізнес-операції без HTTP",
+    "collaboration": "ResultKind, Booking"
+  },
+  {
+    "name": "ResultKind",
+    "responsibility": "Класифікувати доменні результати",
+    "collaboration": "OperationResult"
+  },
+  {
+    "name": "CoworkingController",
+    "responsibility": "Передати запит моделі й результат вигляду",
+    "collaboration": "Booking, CoworkingWebView, WebResponse"
+  },
+  {
+    "name": "CoworkingWebView",
+    "responsibility": "Перетворювати доменні результати на HTTP-код і тіло",
+    "collaboration": "OperationResult, TimeInterval, WebResponse"
+  },
+  {
+    "name": "WebResponse",
+    "responsibility": "Незмінно зберігати HTTP-код і тіло відповіді",
+    "collaboration": "CoworkingWebView, JavalinWebServer"
+  },
+  {
+    "name": "WebServer",
+    "responsibility": "Контракт запуску без типів Javalin",
+    "collaboration": "CoworkingController, Main"
+  },
+  {
+    "name": "JavalinWebServer",
+    "responsibility": "Оголошувати маршрути, JSON і статичні файли, делегувати контролеру",
+    "collaboration": "WebServer, CoworkingController, WebResponse"
+  },
+  {
+    "name": "JavalinWebServer.Input",
+    "responsibility": "Переносити значення JSON-запиту до контролера; бізнес-правил не містить",
+    "collaboration": "JavalinWebServer, CoworkingController"
   }
 ]

@@ -1,0 +1,234 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam nodesep 35
+skinparam ranksep 45
+package model {
+class CoworkingMember {
+  <<abstract>>
+  -String id
+  -String name
+  +CoworkingMember(id, name)
+  +getId() String
+  +getName() String
+  +role() String
+}
+class TariffPlan {
+  <<interface>>
+  +tariff() String
+}
+class Resident {
+  -String currentTariff
+  -String nextTariff
+  +Resident(id, name)
+  +role() String
+  +tariff() String
+  +book(booking, interval) String
+  +book(booking, space, start, end) String
+  +changeTariff(next) String
+}
+class SpaceManager {
+  -String layout
+  +SpaceManager(id, name)
+  +role() String
+  +tariff() String
+  +manageLayout(layout) String
+}
+class Accountant {
+  +Accountant(id, name)
+  +role() String
+  +tariff() String
+  +invoice(booking) String
+}
+class TimeInterval {
+  -String id
+  -String resident
+  -String space
+  -String start
+  -String end
+  +TimeInterval(id, resident, space, start, end)
+  +id() String
+  +resident() String
+  +space() String
+  +start() String
+  +end() String
+}
+class BookingState {
+  <<enumeration>>
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+class Booking {
+  -String id
+  -BookingState state
+  -List<TimeInterval> intervals
+  -TimeIntervalStorage storage
+  +Booking(storage)
+  +add(interval) String
+  +getIntervals() List<TimeInterval>
+  +getState() BookingState
+  +getId() String
+  +confirm(access) String
+  +cancel() String
+  +hours() double
+  +read() List<TimeInterval>
+  +create(interval) OperationResult
+  +update(id, interval) OperationResult
+  +delete(id) OperationResult
+}
+class AccessControl {
+  <<interface>>
+  +grant(bookingId) String
+}
+class ConsoleAccessControl {
+  +ConsoleAccessControl()
+  +grant(bookingId) String
+}
+class TimeIntervalStorage {
+  <<interface>>
+  +save(interval) void
+  +findAll() List<TimeInterval>
+  +update(interval) boolean
+  +delete(id) boolean
+}
+class OperationResult {
+  -ResultKind kind
+  -String message
+  +OperationResult(kind, message)
+}
+class ResultKind {
+  <<enumeration>>
+  SUCCESS
+  INVALID
+  NOT_FOUND
+  FORBIDDEN
+  ERROR
+}
+}
+package controller {
+class CoworkingController {
+  -Booking model
+  -CoworkingWebView view
+  +CoworkingController(model, view)
+  +read() WebResponse
+  +create(values) WebResponse
+  +update(id, values) WebResponse
+  +delete(id) WebResponse
+  +invalid() WebResponse
+  +error() WebResponse
+}
+}
+package view {
+class CoworkingWebView {
+  +read(items) WebResponse
+  +result(result, created) WebResponse
+  +invalid() WebResponse
+  +error() WebResponse
+}
+class WebResponse {
+  -int status
+  -Object body
+  +WebResponse(status, body)
+}
+}
+package infrastructure {
+class SqliteTimeIntervalStorage {
+  -Connection connection
+  +SqliteTimeIntervalStorage(connection)
+  +save(interval) void
+  +findAll() List<TimeInterval>
+  +update(interval) boolean
+  +delete(id) boolean
+}
+class CoworkingModule {
+  +configure() void
+  +connection() Connection
+}
+class AbstractModule {
+  <<abstract>>
+  +configure() void
+}
+class Injector {
+  <<interface>>
+  +getInstance(type) Object
+}
+class Guice {
+  +createInjector(module) Injector
+}
+class Connection {
+  <<interface>>
+  +close() void
+}
+class Main {
+  +main(args) void
+}
+class WebServer {
+  <<interface>>
+  +start(controller, port) void
+}
+class Input {
+  <<record>>
+  +String id
+  +String resident
+  +String space
+  +String start
+  +String end
+}
+class JavalinWebServer {
+  +start(controller, port) void
+  -send(context, response) void
+}
+}
+CoworkingMember <|-- Resident
+CoworkingMember <|-- SpaceManager
+CoworkingMember <|-- Accountant
+Resident ..|> TariffPlan
+SpaceManager ..|> TariffPlan
+Accountant ..|> TariffPlan
+Booking "1" *-- "0..*" TimeInterval : володіє
+Booking --> BookingState
+Booking ..> AccessControl : confirm
+ConsoleAccessControl ..|> AccessControl
+Resident ..> Booking : book
+Resident ..> TimeInterval
+Accountant ..> Booking : invoice
+Booking --> TimeIntervalStorage : constructor Inject
+TimeIntervalStorage ..> TimeInterval
+SqliteTimeIntervalStorage ..|> TimeIntervalStorage
+SqliteTimeIntervalStorage --> Connection
+SqliteTimeIntervalStorage ..> TimeInterval
+AbstractModule <|-- CoworkingModule
+CoworkingModule ..> TimeIntervalStorage : bind
+CoworkingModule ..> SqliteTimeIntervalStorage : to
+CoworkingModule ..> Connection : Provides Singleton
+Main ..> Guice
+Main ..> CoworkingModule
+Main ..> Injector
+Injector ..> Booking : getInstance
+Guice ..> Injector
+Main ..> Booking
+Booking ..> OperationResult
+OperationResult --> ResultKind
+CoworkingController --> Booking
+CoworkingController --> CoworkingWebView
+CoworkingController ..> TimeInterval
+CoworkingController ..> WebResponse
+CoworkingWebView ..> OperationResult
+CoworkingWebView ..> TimeInterval
+CoworkingWebView ..> WebResponse
+JavalinWebServer ..|> WebServer
+WebServer ..> CoworkingController
+JavalinWebServer ..> CoworkingController
+JavalinWebServer ..> WebResponse
+CoworkingModule ..> WebServer : bind
+CoworkingModule ..> JavalinWebServer : to
+Main ..> WebServer
+Main ..> CoworkingController
+Main ..> CoworkingWebView
+
+note right of CoworkingMember : getId() є final; role() є abstract
+
+JavalinWebServer ..> Input : JSON request
+@enduml

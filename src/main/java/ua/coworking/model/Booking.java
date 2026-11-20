@@ -29,12 +29,44 @@ public final class Booking {
         }
         return null;
     }
-    public synchronized String add(TimeInterval t) {
-        if (state != BookingState.DRAFT) return "Відмова: зміни дозволені лише в DRAFT.";
-        String error=validate(t,null);
-        if (error != null) return "Відмова: "+error;
-        storage.save(t); intervals.clear(); intervals.addAll(storage.findAll()); return "Інтервал додано: "+t.id()+" ("+t.space()+").";
+    private OperationResult result(ResultKind kind,String message) {return new OperationResult(kind,message);}
+    private OperationResult check(TimeInterval t,String ignoreId) {
+        String error=validate(t,ignoreId);
+        if(error==null)return result(ResultKind.SUCCESS,"");
+        ResultKind kind=(error.equals("Ідентифікатор уже існує.")||error.equals("Місце вже зайняте в цей час."))?ResultKind.FORBIDDEN:ResultKind.INVALID;
+        return result(kind,"Відмова: "+error);
     }
+    private OperationResult locked() {return result(ResultKind.FORBIDDEN,"Відмова: зміни дозволені лише в DRAFT.");}
+    private OperationResult missing() {return result(ResultKind.NOT_FOUND,"Відмова: інтервал не знайдено.");}
+    private OperationResult failed() {return result(ResultKind.ERROR,"Сховище тимчасово недоступне.");}
+    public synchronized List<TimeInterval> read() {
+        List<TimeInterval> saved=storage.findAll();intervals.clear();intervals.addAll(saved);return List.copyOf(intervals);
+    }
+    public synchronized OperationResult create(TimeInterval t) {
+        if(state!=BookingState.DRAFT)return locked();
+        try {
+            read();OperationResult checked=check(t,null);
+            if(checked.kind()!=ResultKind.SUCCESS)return checked;
+            storage.save(t);read();return result(ResultKind.SUCCESS,"Інтервал додано: "+t.id()+" ("+t.space()+").");
+        }catch(IllegalStateException ex){return failed();}
+    }
+    public synchronized OperationResult update(String id,TimeInterval t) {
+        if(state!=BookingState.DRAFT)return locked();
+        try {
+            read();if(intervals.stream().noneMatch(old->old.id().equals(id)))return missing();
+            if(t==null||!Objects.equals(id,t.id()))return result(ResultKind.INVALID,"Відмова: ідентифікатор не можна змінювати.");
+            OperationResult checked=check(t,id);if(checked.kind()!=ResultKind.SUCCESS)return checked;
+            if(!storage.update(t))return missing();read();return result(ResultKind.SUCCESS,"Інтервал змінено.");
+        }catch(IllegalStateException ex){return failed();}
+    }
+    public synchronized OperationResult delete(String id) {
+        if(state!=BookingState.DRAFT)return locked();
+        try {
+            read();if(intervals.stream().noneMatch(old->old.id().equals(id)))return missing();
+            if(!storage.delete(id))return missing();read();return result(ResultKind.SUCCESS,"Інтервал видалено.");
+        }catch(IllegalStateException ex){return failed();}
+    }
+    public synchronized String add(TimeInterval t) {return create(t).message();}
     public synchronized String confirm(AccessControl access) {
         if (state != BookingState.DRAFT || intervals.isEmpty()) return "Відмова: підтвердження потребує DRAFT і хоча б одного інтервалу.";
         String message=Objects.requireNonNull(access).grant(id);

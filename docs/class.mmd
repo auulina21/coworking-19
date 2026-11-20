@@ -1,5 +1,6 @@
 classDiagram
 direction TB
+namespace model {
 class CoworkingMember {
   <<abstract>>
   -String id
@@ -68,6 +69,10 @@ class Booking {
   +confirm(access) String
   +cancel() String
   +hours() double
+  +read() List~TimeInterval~
+  +create(interval) OperationResult
+  +update(id, interval) OperationResult
+  +delete(id) OperationResult
 }
 class AccessControl {
   <<interface>>
@@ -81,12 +86,57 @@ class TimeIntervalStorage {
   <<interface>>
   +save(interval) void
   +findAll() List~TimeInterval~
+  +update(interval) boolean
+  +delete(id) boolean
 }
+class OperationResult {
+  -ResultKind kind
+  -String message
+  +OperationResult(kind, message)
+}
+class ResultKind {
+  <<enumeration>>
+  SUCCESS
+  INVALID
+  NOT_FOUND
+  FORBIDDEN
+  ERROR
+}
+}
+namespace controller {
+class CoworkingController {
+  -Booking model
+  -CoworkingWebView view
+  +CoworkingController(model, view)
+  +read() WebResponse
+  +create(values) WebResponse
+  +update(id, values) WebResponse
+  +delete(id) WebResponse
+  +invalid() WebResponse
+  +error() WebResponse
+}
+}
+namespace view {
+class CoworkingWebView {
+  +read(items) WebResponse
+  +result(result, created) WebResponse
+  +invalid() WebResponse
+  +error() WebResponse
+}
+class WebResponse {
+  -int status
+  -Object body
+  +WebResponse(status, body)
+}
+}
+namespace infrastructure {
 class SqliteTimeIntervalStorage {
   -Connection connection
   +SqliteTimeIntervalStorage(connection)
   +save(interval) void
   +findAll() List~TimeInterval~
+  +update(interval) boolean
+  +delete(id) boolean
 }
 class CoworkingModule {
   +configure() void
@@ -110,8 +160,22 @@ class Connection {
 class Main {
   +main(args) void
 }
-class StaticHtmlExporter {
-  +write(intervals, path) void
+class WebServer {
+  <<interface>>
+  +start(controller, port) void
+}
+class Input {
+  <<record>>
+  +String id
+  +String resident
+  +String space
+  +String start
+  +String end
+}
+class JavalinWebServer {
+  +start(controller, port) void
+  -send(context, response) void
+}
 }
 CoworkingMember <|-- Resident
 CoworkingMember <|-- SpaceManager
@@ -141,6 +205,25 @@ Main ..> Injector
 Injector ..> Booking : getInstance
 Guice ..> Injector
 Main ..> Booking
-Main ..> StaticHtmlExporter
-StaticHtmlExporter ..> TimeInterval
-Main ..> TimeIntervalStorage
+Booking ..> OperationResult
+OperationResult --> ResultKind
+CoworkingController --> Booking
+CoworkingController --> CoworkingWebView
+CoworkingController ..> TimeInterval
+CoworkingController ..> WebResponse
+CoworkingWebView ..> OperationResult
+CoworkingWebView ..> TimeInterval
+CoworkingWebView ..> WebResponse
+JavalinWebServer ..|> WebServer
+WebServer ..> CoworkingController
+JavalinWebServer ..> CoworkingController
+JavalinWebServer ..> WebResponse
+CoworkingModule ..> WebServer : bind
+CoworkingModule ..> JavalinWebServer : to
+Main ..> WebServer
+Main ..> CoworkingController
+Main ..> CoworkingWebView
+
+note for CoworkingMember "getId() є final; role() є abstract"
+
+JavalinWebServer ..> Input : JSON request
