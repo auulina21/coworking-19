@@ -36,4 +36,5 @@ Adapter ..|> Server
 Main --> Server
 Module ..> Storage : bind
 Module ..> Server : bind
+Storage -[hidden]down- DB
 @enduml

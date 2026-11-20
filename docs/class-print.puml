@@ -1,5 +1,4 @@
 @startuml
-!pragma layout smetana
 skinparam defaultFontName Arial
 skinparam defaultFontSize 13
 skinparam nodesep 35
