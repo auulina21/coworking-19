@@ -1,14 +1,20 @@
 stateDiagram-v2
 [*] --> DRAFT
-DRAFT --> DRAFT : add / update / delete interval
-DRAFT --> CONFIRMED : confirm [intervals not empty]
-CONFIRMED --> CONFIRMED : invoice / read
-DRAFT --> CANCELLED : cancel
-CONFIRMED --> CANCELLED : cancel
+DRAFT --> DRAFT : add()/update()/delete() — змінити інтервал
+DRAFT --> CONFIRMED : confirm() [є інтервали і впроваджено AccessControl]
+CONFIRMED --> CONFIRMED : invoice()/read() — рахунок і читання
+DRAFT --> CANCELLED : cancel() — скасувати
+CONFIRMED --> CANCELLED : cancel() — скасувати
 CANCELLED --> [*]
 note right of DRAFT
 Некоректні дані не змінюють стан
 end note
 note right of CONFIRMED
-Зміни інтервалів заборонені
+Зміни інтервалів і повторне confirm відхиляються
 end note
+
+note right of CANCELLED
+Повторне confirm і зміни відхиляються
+end note
+
+DRAFT --> DRAFT : confirm [є інтервали, немає AccessControl] / відмова без зміни стану

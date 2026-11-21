@@ -5,7 +5,7 @@
 ## Technical Context
 Стек: Java 21, Maven 3.9.11, Guice 7.0.0, sqlite-jdbc 3.49.1.0. Платформа Windows; JDK 26 з --release 21. Навчальний обсяг: один Booking, десятки інтервалів. Імітація зовнішнього доступу та рахунків. Тести: фактичний запуск сценаріїв, граничних інтервалів, відмов; для БД — повторне читання після відкриття з'єднання; для MVC — HTTP і браузер.
 ## Constitution Check
-До і після дизайну: SRP, constructor DI, українські повідомлення, текстові діаграми, відсутність SQL у домені — виконано дизайном. Конституція етапу дозволяє тільки його стек. Невирішених питань немає.
+До і після дизайну: SRP, DI через setter для AccessControl, українські повідомлення, текстові діаграми, відсутність SQL у домені — виконано дизайном. Конституція етапу дозволяє тільки його стек. Невирішених питань немає.
 ## Project Structure
 pom.xml, src/main/java/ua/coworking/model/Booking.java, infrastructure/SqliteTimeIntervalStorage.java, infrastructure/CoworkingModule.java, StaticHtmlExporter.java
 ## Phase 0: Research

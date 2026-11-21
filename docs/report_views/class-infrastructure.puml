@@ -1,0 +1,67 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam nodesep 30
+skinparam ranksep 35
+skinparam wrapWidth 200
+class SqliteTimeIntervalStorage {
+  +inTransaction(work) Object
+  -Connection connection
+  +SqliteTimeIntervalStorage(connection)
+  +save(interval) void
+  +findAll() List<TimeInterval>
+  +update(interval) boolean
+  +delete(id) boolean
+}
+class CoworkingModule {
+  +configure() void
+  +connection() Connection
+}
+class AbstractModule {
+  <<abstract>>
+  +configure() void
+}
+class Injector {
+  <<interface>>
+  +getInstance(type) Object
+}
+class Guice {
+  +createInjector(module) Injector
+}
+class Connection {
+  <<interface>>
+  +close() void
+}
+class Main {
+  +main(args) void
+}
+class WebServer {
+  <<interface>>
+  +start(controller, port) void
+}
+class Input {
+  <<record>>
+  +String id
+  +String resident
+  +String space
+  +String start
+  +String end
+}
+class JavalinWebServer {
+  +start(controller, port) void
+  -send(context, response) void
+}
+SqliteTimeIntervalStorage --> Connection
+AbstractModule <|-- CoworkingModule
+CoworkingModule ..> SqliteTimeIntervalStorage : to
+CoworkingModule ..> Connection : Provides Singleton
+Main ..> Guice
+Main ..> CoworkingModule
+Main ..> Injector
+Guice ..> Injector
+JavalinWebServer ..|> WebServer
+CoworkingModule ..> WebServer : bind
+CoworkingModule ..> JavalinWebServer : to
+Main ..> WebServer
+JavalinWebServer ..> Input : JSON request
+@enduml

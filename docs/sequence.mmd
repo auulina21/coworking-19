@@ -23,7 +23,8 @@ W->>C: create(values)
 C->>B: create(new TimeInterval(...))
 B->>S: findAll()
 S->>DB: SELECT
-DB-->>B: збережені інтервали
+DB-->>S: рядки
+S-->>B: список інтервалів
 alt порушено правила
  B-->>C: OperationResult INVALID/FORBIDDEN
 else коректно
@@ -41,8 +42,15 @@ W->>C: read()
 C->>B: read()
 B->>S: findAll()
 S->>DB: SELECT
-DB-->>B: дані
+DB-->>S: рядки
+S-->>B: інтервали
 B-->>C: список
 C->>V: read(items)
-V-->>P: через контролер і адаптер: 200 items
+V-->>C: WebResponse(200, items)
+C-->>W: WebResponse
+W-->>P: 200 items
 Note over P,DB: PUT /{id} і DELETE /{id} проходять тим самим шляхом
+
+Note over B: AccessControl впроваджується Guice через @Inject setter, grant тільки при DRAFT і наявності інтервалу
+
+Note over B,DB: create/update/delete об’єднують запис і findAll у inTransaction, COMMIT лише після читання, при помилці ROLLBACK і відновлення колекції

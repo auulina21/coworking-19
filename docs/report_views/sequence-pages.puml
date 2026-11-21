@@ -1,0 +1,65 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam maxMessageSize 180
+skinparam wrapWidth 220
+skinparam nodesep 35
+skinparam ranksep 45
+box "view"
+participant "Сторінка" as P
+end box
+box "infrastructure"
+participant "Адаптер" as W
+end box
+box "controller"
+participant "Контролер" as C
+end box
+box "model"
+participant "Booking" as B
+end box
+box "infrastructure"
+participant "Storage" as S
+participant "SQLite" as DB
+end box
+box "view"
+participant "Вигляд" as V
+end box
+P->>W: POST /api/coworking (JSON)
+W->>C: create(values)
+C->>B: create(new TimeInterval(...))
+B->>S: findAll()
+S->>DB: SELECT
+DB-->>S: рядки
+S-->>B: список інтервалів
+alt порушено правила
+ B-->>C: OperationResult INVALID/FORBIDDEN
+else коректно
+ B->>S: save(interval)
+ S->>DB: INSERT
+ B->>S: findAll() оновити колекцію
+ B-->>C: OperationResult SUCCESS
+end
+C->>V: result(result,true)
+V-->>C: WebResponse(status,body)
+C-->>W: WebResponse
+W-->>P: JSON і HTTP 201/400/409
+newpage
+P->>W: GET /api/coworking
+W->>C: read()
+C->>B: read()
+B->>S: findAll()
+S->>DB: SELECT
+DB-->>S: рядки
+S-->>B: інтервали
+B-->>C: список
+C->>V: read(items)
+V-->>C: WebResponse(200, items)
+C-->>W: WebResponse
+W-->>P: 200 items
+note over P,DB: PUT /{id} і DELETE /{id} проходять тим самим шляхом
+
+note over B: AccessControl впроваджується Guice через @Inject setter; grant тільки при DRAFT і наявності інтервалу
+
+note over B,DB: create/update/delete об’єднують запис і findAll у inTransaction; COMMIT лише після читання, при помилці ROLLBACK і відновлення колекції
+@enduml

@@ -11,7 +11,7 @@ public final class JavalinWebServer implements WebServer {
     public record Input(String id,String resident,String space,String start,String end) {}
     private void send(Context ctx,WebResponse response) {ctx.status(response.status()).json(response.body());}
     @Override public void start(CoworkingController controller,int port) {
-        ObjectMapper mapper=new ObjectMapper();
+        ObjectMapper mapper=new ObjectMapper().enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
         Javalin app=Javalin.create(config->{
             config.staticFiles.add("/public");config.jsonMapper(new JavalinJackson(mapper,false));
             config.showJavalinBanner=false;
@@ -24,6 +24,7 @@ public final class JavalinWebServer implements WebServer {
         app.exception(JsonProcessingException.class,(ex,ctx)->send(ctx,controller.invalid()));
         app.exception(Exception.class,(ex,ctx)->{ex.printStackTrace();send(ctx,controller.error());});
         Runtime.getRuntime().addShutdownHook(new Thread(app::stop));
-        app.start("127.0.0.1",port);
+        try {app.start("127.0.0.1",port);}
+        catch(RuntimeException ex) {app.stop();throw ex;}
     }
 }

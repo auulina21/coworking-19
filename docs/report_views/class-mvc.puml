@@ -1,0 +1,34 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam nodesep 30
+skinparam ranksep 35
+skinparam wrapWidth 200
+class CoworkingController {
+  -Booking model
+  -CoworkingWebView view
+  +CoworkingController(model, view)
+  +read() WebResponse
+  +create(values) WebResponse
+  +update(id, values) WebResponse
+  +delete(id) WebResponse
+  +invalid() WebResponse
+  +error() WebResponse
+}
+class CoworkingWebView {
+  +read(items) WebResponse
+  +result(result, created) WebResponse
+  +invalid() WebResponse
+  +error() WebResponse
+}
+class WebResponse {
+  -int status
+  -Object body
+  +WebResponse(status, body)
+}
+CoworkingController --> CoworkingWebView
+CoworkingController ..> WebResponse
+CoworkingWebView ..> WebResponse
+class Booking
+CoworkingController --> Booking : model
+@enduml

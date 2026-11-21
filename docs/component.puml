@@ -14,6 +14,8 @@ package controller {
 package model {
  [Booking / TimeInterval] as Model
  () TimeIntervalStorage as Storage
+ () AccessControl as Access
+ [ConsoleAccessControl] as ConsoleAccess
 }
 package infrastructure {
  [Main] as Main
@@ -30,6 +32,10 @@ Controller --> Model
 Controller --> View
 View --> Response
 Model --> Storage
+Model --> Access
+ConsoleAccess ..|> Access
+Module ..> Access : bind
+Module ..> ConsoleAccess : to
 Sqlite ..|> Storage
 Sqlite --> DB
 Adapter ..|> Server
@@ -37,4 +43,5 @@ Main --> Server
 Module ..> Storage : bind
 Module ..> Server : bind
 Storage -[hidden]down- DB
+note "Guice: AccessControl → ConsoleAccessControl через @Inject setter" as AccessDI
 @enduml

@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import java.util.*;
 public final class Booking {
     private final String id;
+    private AccessControl access;
     private BookingState state = BookingState.DRAFT;
     private final List<TimeInterval> intervals = new ArrayList<>();
     private final TimeIntervalStorage storage;
@@ -11,14 +12,20 @@ public final class Booking {
         this.id="B19";this.storage=Objects.requireNonNull(storage);
         intervals.addAll(storage.findAll());
     }
+    @Inject
+    public synchronized void setAccessControl(AccessControl access) { this.access=Objects.requireNonNull(access); }
     public String getId() { return id; }
     public BookingState getState() { return state; }
     public List<TimeInterval> getIntervals() { return List.copyOf(intervals); }
     private String validate(TimeInterval t, String ignoreId) {
-        if (t == null || t.id().isBlank() || t.resident().isBlank() || t.space().isBlank() || t.start().isBlank() || t.end().isBlank()) return "Усі поля обов'язкові.";
-        if (t.id().length()>80 || t.resident().length()>120 || t.space().length()>120) return "Перевищено допустиму довжину поля.";
+        if (t == null) return "Інтервал відсутній.";
+        if (t.id().isBlank()) return "Ідентифікатор обов'язковий.";
+        if (t.resident().isBlank() || t.space().isBlank() || t.start().isBlank() || t.end().isBlank()) return "Усі поля обов'язкові.";
         LocalDateTime start, end;
-        try { start=LocalDateTime.parse(t.start()); end=LocalDateTime.parse(t.end()); }
+        try {
+            var minuteFormat=java.time.format.DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm").withResolverStyle(java.time.format.ResolverStyle.STRICT);
+            start=LocalDateTime.parse(t.start(),minuteFormat);end=LocalDateTime.parse(t.end(),minuteFormat);
+        }
         catch (RuntimeException ex) { return "Некоректний формат дати й часу."; }
         if (start.getSecond()!=0 || start.getNano()!=0 || end.getSecond()!=0 || end.getNano()!=0) return "Час задається з точністю до хвилини.";
         if (!start.isBefore(end)) return "Початок має бути раніше за кінець.";
@@ -42,34 +49,42 @@ public final class Booking {
     public synchronized List<TimeInterval> read() {
         List<TimeInterval> saved=storage.findAll();intervals.clear();intervals.addAll(saved);return List.copyOf(intervals);
     }
+    private OperationResult change(java.util.function.Supplier<OperationResult> work) {
+        List<TimeInterval> before=List.copyOf(intervals);
+        try { return storage.inTransaction(work); }
+        catch(IllegalStateException ex) {intervals.clear();intervals.addAll(before);return failed();}
+    }
     public synchronized OperationResult create(TimeInterval t) {
         if(state!=BookingState.DRAFT)return locked();
-        try {
+        return change(() -> {
             read();OperationResult checked=check(t,null);
             if(checked.kind()!=ResultKind.SUCCESS)return checked;
             storage.save(t);read();return result(ResultKind.SUCCESS,"Інтервал додано: "+t.id()+" ("+t.space()+").");
-        }catch(IllegalStateException ex){return failed();}
+        });
     }
     public synchronized OperationResult update(String id,TimeInterval t) {
         if(state!=BookingState.DRAFT)return locked();
-        try {
+        return change(() -> {
             read();if(intervals.stream().noneMatch(old->old.id().equals(id)))return missing();
             if(t==null||!Objects.equals(id,t.id()))return result(ResultKind.INVALID,"Відмова: ідентифікатор не можна змінювати.");
             OperationResult checked=check(t,id);if(checked.kind()!=ResultKind.SUCCESS)return checked;
             if(!storage.update(t))return missing();read();return result(ResultKind.SUCCESS,"Інтервал змінено.");
-        }catch(IllegalStateException ex){return failed();}
+        });
     }
     public synchronized OperationResult delete(String id) {
         if(state!=BookingState.DRAFT)return locked();
-        try {
+        return change(() -> {
             read();if(intervals.stream().noneMatch(old->old.id().equals(id)))return missing();
             if(!storage.delete(id))return missing();read();return result(ResultKind.SUCCESS,"Інтервал видалено.");
-        }catch(IllegalStateException ex){return failed();}
+        });
     }
     public synchronized String add(TimeInterval t) {return create(t).message();}
-    public synchronized String confirm(AccessControl access) {
-        if (state != BookingState.DRAFT || intervals.isEmpty()) return "Відмова: підтвердження потребує DRAFT і хоча б одного інтервалу.";
-        String message=Objects.requireNonNull(access).grant(id);
+    public synchronized String confirm() {
+        if (state == BookingState.CONFIRMED) return "Відмова: бронювання вже підтверджено.";
+        if (state == BookingState.CANCELLED) return "Відмова: бронювання скасовано.";
+        if (intervals.isEmpty()) return "Відмова: немає інтервалів для підтвердження.";
+        if (access == null) return "Відмова: сервіс доступу не налаштовано.";
+        String message=access.grant(id);
         state=BookingState.CONFIRMED;return "Бронювання підтверджено. "+message;
     }
     public synchronized String cancel() {

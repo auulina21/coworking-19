@@ -10,7 +10,7 @@ class MvcTest {
     private CoworkingController controller(Booking b){return new CoworkingController(b,new CoworkingWebView());}
     @Test void crudAndStatusMapping() throws Exception {
         try(Connection c=DriverManager.getConnection("jdbc:sqlite::memory:")) {
-            Booking b=new Booking(new SqliteTimeIntervalStorage(c));CoworkingController ctl=controller(b);
+            Booking b=new Booking(new SqliteTimeIntervalStorage(c));b.setAccessControl(new ConsoleAccessControl());CoworkingController ctl=controller(b);
             assertEquals(201,ctl.create("A","Олена","Зал","2026-12-01T09:00","2026-12-01T10:00").status());
             assertEquals(409,ctl.create("A","Олена","Інший зал","2026-12-01T10:00","2026-12-01T11:00").status());
             assertEquals(200,ctl.update("A","A","Ірина","Зал","2026-12-01T10:00","2026-12-01T11:00").status());
@@ -22,7 +22,7 @@ class MvcTest {
     }
     @Test void rejectsInvalidWithoutClientValidation() throws Exception {
         try(Connection c=DriverManager.getConnection("jdbc:sqlite::memory:")) {
-            Booking b=new Booking(new SqliteTimeIntervalStorage(c));CoworkingController ctl=controller(b);
+            Booking b=new Booking(new SqliteTimeIntervalStorage(c));b.setAccessControl(new ConsoleAccessControl());CoworkingController ctl=controller(b);
             assertEquals(400,ctl.create("A","","Зал","2026-12-01T09:00","2026-12-01T10:00").status());
             assertEquals(400,ctl.create("A","Олена","Зал","bad","2026-12-01T10:00").status());
             assertEquals(400,ctl.create("A","Олена","Зал","2026-12-01T10:00","2026-12-01T09:00").status());
@@ -31,7 +31,7 @@ class MvcTest {
     }
     @Test void updateCannotOverlapAndReloadsSourceOfTruth() throws Exception {
         try(Connection c=DriverManager.getConnection("jdbc:sqlite::memory:")) {
-            TimeIntervalStorage storage=new SqliteTimeIntervalStorage(c);Booking b=new Booking(storage);CoworkingController ctl=controller(b);
+            TimeIntervalStorage storage=new SqliteTimeIntervalStorage(c);Booking b=new Booking(storage);b.setAccessControl(new ConsoleAccessControl());CoworkingController ctl=controller(b);
             ctl.create("A","Олена","Зал","2026-12-01T09:00","2026-12-01T10:00");
             ctl.create("B","Олена","Зал","2026-12-01T10:00","2026-12-01T11:00");
             assertEquals(409,ctl.update("B","B","Олена","зал","2026-12-01T09:30","2026-12-01T10:30").status());
@@ -42,9 +42,9 @@ class MvcTest {
     }
     @Test void lockedStateAndMissingUpdate() throws Exception {
         try(Connection c=DriverManager.getConnection("jdbc:sqlite::memory:")) {
-            Booking b=new Booking(new SqliteTimeIntervalStorage(c));CoworkingController ctl=controller(b);
+            Booking b=new Booking(new SqliteTimeIntervalStorage(c));b.setAccessControl(new ConsoleAccessControl());CoworkingController ctl=controller(b);
             assertEquals(404,ctl.update("missing","missing","Ірина","Зал","2026-12-01T09:00","2026-12-01T10:00").status());
-            ctl.create("A","Олена","Зал","2026-12-01T09:00","2026-12-01T10:00");b.confirm(new ConsoleAccessControl());
+            ctl.create("A","Олена","Зал","2026-12-01T09:00","2026-12-01T10:00");b.confirm();
             assertEquals(409,ctl.delete("A").status());assertEquals(1,b.read().size());
         }
     }
