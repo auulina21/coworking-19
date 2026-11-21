@@ -24,4 +24,28 @@ public final class SqliteTimeIntervalStorage implements TimeIntervalStorage {
         } catch (SQLException ex) { throw new IllegalStateException("Не вдалося прочитати інтервали.",ex); }
         return List.copyOf(result);
     }
+    @Override public synchronized <T> T inTransaction(java.util.function.Supplier<T> work) {
+        try {
+            if (!connection.getAutoCommit()) throw new IllegalStateException("Вкладені транзакції не підтримуються.");
+            connection.setAutoCommit(false);
+        } catch(SQLException ex) {throw new IllegalStateException("Не вдалося почати транзакцію.",ex);}
+        boolean safeToRestore=false;
+        try {
+            T result=work.get();connection.commit();safeToRestore=true;return result;
+        } catch(RuntimeException | SQLException ex) {
+            try {connection.rollback();safeToRestore=true;}
+            catch(SQLException rollback) {
+                ex.addSuppressed(rollback);
+                try {connection.close();} catch(SQLException close) {ex.addSuppressed(close);}
+            }
+            throw new IllegalStateException("Операцію сховища скасовано.",ex);
+        } finally {
+            if(safeToRestore)try {connection.setAutoCommit(true);}
+            catch(SQLException cleanup) {
+                // Commit/rollback already completed. Cleanup must not change that outcome.
+                try {connection.close();} catch(SQLException close) {cleanup.addSuppressed(close);}
+                System.err.println("З’єднання сховища закрито після помилки відновлення режиму.");
+            }
+        }
+    }
 }

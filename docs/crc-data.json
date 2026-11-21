@@ -11,7 +11,7 @@
   },
   {
     "name": "Resident",
-    "responsibility": "Бронювати відвідування; запланувати тариф наступного місяця",
+    "responsibility": "Бронювати відвідування; запланувати тариф наступного місяця. Допустимі тарифи BASIC/FLEX; змінюється лише nextTariff наступного місяця. Автоматичні ідентифікатори UUID.",
     "collaboration": "Booking, TimeInterval, TariffPlan"
   },
   {
@@ -36,7 +36,7 @@
   },
   {
     "name": "Booking",
-    "responsibility": "Володіти інтервалами, перевіряти правила та переходи станів; координувати збереження через абстракцію",
+    "responsibility": "Володіти інтервалами; перевіряти поля, унікальний id, час і перетини; керувати станом; одержувати AccessControl через setter і викликати його лише при підтвердженні. Координувати збереження через TimeIntervalStorage.",
     "collaboration": "TimeInterval, BookingState, AccessControl, TimeIntervalStorage"
   },
   {
@@ -51,18 +51,18 @@
   },
   {
     "name": "TimeIntervalStorage",
-    "responsibility": "Контракт збереження й читання; на 004 також CRUD",
+    "responsibility": "Контракт save, findAll та inTransaction для інтервалів. Виконувати запис і перечитування в одній транзакції; відкотити зміни при помилці.",
     "collaboration": "Booking, TimeInterval, SqliteTimeIntervalStorage"
   },
   {
     "name": "SqliteTimeIntervalStorage",
-    "responsibility": "Виконувати параметризовані SQL-запити до однієї таблиці",
+    "responsibility": "Виконувати параметризовані SQL-запити до однієї таблиці Виконувати запис і перечитування в одній транзакції; відкотити зміни при помилці.",
     "collaboration": "Connection, TimeIntervalStorage, TimeInterval"
   },
   {
     "name": "CoworkingModule",
     "responsibility": "Прив’язувати інтерфейси, надавати JDBC-з’єднання",
-    "collaboration": "AbstractModule, Connection, TimeIntervalStorage"
+    "collaboration": "AbstractModule, TimeIntervalStorage, SqliteTimeIntervalStorage, AccessControl, ConsoleAccessControl, Connection"
   },
   {
     "name": "Main",

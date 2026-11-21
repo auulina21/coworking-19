@@ -18,7 +18,8 @@ public final class Main {
         System.out.println(manager.role()+": "+manager.manageLayout("4 робочі місця, переговорна A"));
         System.out.println(manager.manageLayout(""));
         System.out.println(accountant.invoice(booking));
-        System.out.println(booking.confirm(new ConsoleAccessControl()));
+        if(booking.getIntervals().isEmpty())System.out.println(booking.confirm());
+        else System.out.println("Прочитано наявні інтервали; DRAFT збережено для перевірки дублів.");
         System.out.println(resident.book(booking,new TimeInterval("T19","Олена","Переговорна A","2026-12-01T09:00","2026-12-01T11:00")));
         System.out.println(resident.book(booking,new TimeInterval("T19","Олена","Місце 1","2026-12-01T12:00","2026-12-01T13:00")));
         System.out.println(resident.book(booking,new TimeInterval("OVERLAP","Олена","переговорна a","2026-12-01T10:00","2026-12-01T12:00")));
@@ -27,10 +28,10 @@ public final class Main {
         System.out.println(resident.book(booking,new TimeInterval("T20","Олена","Місце 1","2026-12-01T09:00","2026-12-01T10:00")));
         System.out.println(resident.changeTariff("FLEX"));
         System.out.println(resident.changeTariff("UNKNOWN"));
-        System.out.println(booking.confirm(new ConsoleAccessControl()));
+        System.out.println(booking.confirm());
         System.out.println(accountant.invoice(booking));
         System.out.println(booking.add(new TimeInterval("LATE","Олена","Місце 3","2026-12-01T13:00","2026-12-01T14:00")));
-        System.out.println(booking.confirm(new ConsoleAccessControl()));
+        System.out.println(booking.confirm());
         System.out.println("Прийнято інтервалів: "+booking.getIntervals().size());
         System.out.println(booking.cancel());
         System.out.println(booking.cancel());

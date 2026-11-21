@@ -8,8 +8,12 @@ mvn clean test compile exec:java
 Файл `target/coworking.db`, таблиця `time_intervals`. Після сценаріїв `target/intervals.html` формується з даних повторного читання SQLite. Відкрийте HTML браузером через локальний статичний сервер.
 Повторний запуск зберігає наявні дані; дублі отримують відмову. Для чистої демонстрації `mvn clean` видаляє попередній target. Не запускайте clean, якщо потрібно зберегти введені раніше дані.
 ## DIP і DI
-Booking залежить від TimeIntervalStorage. @Inject-конструктор отримує інтерфейс у final-поле. CoworkingModule прив'язує його до SqliteTimeIntervalStorage, а @Provides @Singleton надає Connection. Main отримує Booking через Injector; модель не Singleton. SQL є тільки в інфраструктурному сховищі. Одне INSERT — атомарна транзакція SQLite в autoCommit.
+Booking залежить від TimeIntervalStorage. @Inject-конструктор отримує інтерфейс у final-поле. CoworkingModule прив'язує його до SqliteTimeIntervalStorage, а @Provides @Singleton надає Connection. Main отримує Booking через Injector; модель не Singleton. SQL є тільки в інфраструктурному сховищі. Запис і перечитування виконуються разом у TimeIntervalStorage.inTransaction(work). Успіх повертається після commit. При винятку виконується rollback, а Booking відновлює попередню колекцію. Помилка відновлення режиму після завершеної транзакції закриває з’єднання й не змінює вже зафіксований результат.
 Інтервали: незмінний id, обов'язкові resident/space/start/end, локальний ISO-час до хвилини, start<end, заборона перетинів [start,end) для одного місця. Сценарії підтвердження, рахунку, тарифу й плану збережено.
 Використано Codex, Spec Kit0.15.0. Результати залишені локально за дорученням власника.
 
 Швидкий запуск на цьому ПК: `powershell -NoProfile -File .\run.ps1`. Для окремого розпакування потрібні JDK21+ і Maven (для 3–4).
+
+Уточнення перевірки 21.11.2026: сервіс AccessControl впроваджується через setter відповідно до конституції; у Maven-етапах setter має @Inject, модуль Guice зв’язує AccessControl з ConsoleAccessControl.
+
+Повторний запуск зберігає записи: якщо БД непорожня, початкове підтвердження пропускається, а дублікати перевіряються у DRAFT. Для повного початкового сценарію використовуйте окрему нову БД через -Dcoworking.db=jdbc:sqlite:target/demo-new.db, не видаляючи власні дані.

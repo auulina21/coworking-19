@@ -1,0 +1,57 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam maxMessageSize 180
+skinparam wrapWidth 220
+skinparam nodesep 35
+skinparam ranksep 45
+participant "Main" as M
+participant "Injector" as I
+participant "Booking" as B
+participant "Storage" as S
+participant "SQLite" as DB
+participant "Access" as A
+M->>I: getInstance(Booking.class)
+I->>B: new(storage)
+B->>S: findAll()
+S->>DB: SELECT
+DB-->>S: рядки
+S-->>B: інтервали
+I->>B: setAccessControl(access)
+M->>B: add(interval)
+alt некоректний інтервал або не DRAFT
+ B-->>M: Відмова з причиною; без запису
+else коректні дані
+ B->>S: inTransaction(work)
+ S->>DB: BEGIN
+ S->>B: work.get()
+ B->>S: save(interval)
+ S->>DB: INSERT
+ B->>S: findAll()
+ S->>DB: SELECT
+ DB-->>S: рядки
+ S-->>B: список
+ B->>B: оновити колекцію всередині work.get()
+ alt запис і читання успішні
+  S->>DB: COMMIT
+  B-->>M: Інтервал додано
+ else помилка запису або читання
+  S->>DB: ROLLBACK
+  B->>B: відновити попередню колекцію
+  break поширення винятку
+   B-->>M: throw IllegalStateException
+  end
+ end
+end
+newpage
+M->>B: confirm()
+alt DRAFT, є інтервали і впроваджено сервіс
+ B->>A: grant(id)
+ A-->>B: Імітаційний доступ
+ B-->>M: CONFIRMED
+else повторне confirm, CANCELLED, порожнє або немає сервісу
+ B-->>M: Відмова з конкретною причиною
+end
+note over M,DB: Основний запуск: findAll зі сховища поточного Injector → StaticHtmlExporter.write з HTML escaping. Окремий HtmlExportTest перевіряє повторно відкрите з’єднання.
+@enduml

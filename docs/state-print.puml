@@ -2,22 +2,27 @@
 !pragma layout smetana
 skinparam defaultFontName Arial
 skinparam defaultFontSize 13
+skinparam maxMessageSize 85
+skinparam wrapWidth 220
 skinparam nodesep 35
 skinparam ranksep 45
 [*] --> DRAFT
-DRAFT --> DRAFT : add
-DRAFT --> CONFIRMED : confirm()
-CONFIRMED : invoice / read
-DRAFT --> CANCELLED : cancel()
-CONFIRMED --> CANCELLED : cancel()
+DRAFT --> DRAFT : add() — додати інтервал
+DRAFT --> CONFIRMED : confirm() [є інтервали і впроваджено AccessControl]
+CONFIRMED --> CONFIRMED : invoice()/read() — рахунок і читання
+DRAFT --> CANCELLED : cancel() — скасувати
+CONFIRMED --> CANCELLED : cancel() — скасувати
 CANCELLED --> [*]
-note left of DRAFT
-Лише коректні інтервали.
-Підтвердження потребує
-хоча б одного інтервалу.
+note right of DRAFT
+Некоректні дані не змінюють стан
 end note
-note left of CONFIRMED
-Зміни інтервалів
-заборонені.
+note right of CONFIRMED
+Зміни інтервалів і повторне confirm відхиляються
 end note
+
+note right of CANCELLED
+Повторне confirm і зміни відхиляються
+end note
+
+DRAFT --> DRAFT : confirm [є інтервали, немає AccessControl] / відмова без зміни стану
 @enduml

@@ -4,7 +4,7 @@ class CoworkingMember {
   <<abstract>>
   -String id
   -String name
-  +CoworkingMember(id, name)
+  #CoworkingMember(id, name)
   +getId() String
   +getName() String
   +role() String
@@ -56,16 +56,18 @@ class BookingState {
   CANCELLED
 }
 class Booking {
+  -AccessControl access
+  +setAccessControl(access) void
   -String id
   -BookingState state
   -List~TimeInterval~ intervals
-  -TimeIntervalStorage storage
+  -final TimeIntervalStorage storage
   +Booking(storage)
   +add(interval) String
   +getIntervals() List~TimeInterval~
   +getState() BookingState
   +getId() String
-  +confirm(access) String
+  +confirm() String
   +cancel() String
   +hours() double
 }
@@ -78,11 +80,13 @@ class ConsoleAccessControl {
   +grant(bookingId) String
 }
 class TimeIntervalStorage {
+  +inTransaction(work) Object
   <<interface>>
   +save(interval) void
   +findAll() List~TimeInterval~
 }
 class SqliteTimeIntervalStorage {
+  +inTransaction(work) Object
   -Connection connection
   +SqliteTimeIntervalStorage(connection)
   +save(interval) void
@@ -121,7 +125,7 @@ SpaceManager ..|> TariffPlan
 Accountant ..|> TariffPlan
 Booking "1" *-- "0..*" TimeInterval : володіє
 Booking --> BookingState
-Booking ..> AccessControl : confirm
+Booking --> AccessControl : setter DI
 ConsoleAccessControl ..|> AccessControl
 Resident ..> Booking : book
 Resident ..> TimeInterval
@@ -146,3 +150,12 @@ StaticHtmlExporter ..> TimeInterval
 Main ..> TimeIntervalStorage
 
 note for CoworkingMember "getId() є final; role() є abstract"
+
+note for Resident "BASIC або FLEX; changeTariff змінює лише nextTariff наступного місяця"
+
+CoworkingModule ..> AccessControl : bind
+CoworkingModule ..> ConsoleAccessControl : to
+
+note for Resident "Автоматичний id інтервалу — UUID, незалежний від місця й часу"
+
+note for Booking "getIntervals() повертає незмінну копію List.copyOf; зовнішній клієнт не змінює внутрішню колекцію"
