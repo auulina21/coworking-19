@@ -1,0 +1,50 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam nodesep 30
+skinparam ranksep 35
+skinparam wrapWidth 200
+class CoworkingMember {
+  <<abstract>>
+  -String id
+  -String name
+  #CoworkingMember(id, name)
+  +getId() String
+  +getName() String
+  +role() String
+}
+class TariffPlan {
+  <<interface>>
+  +tariff() String
+}
+class Resident {
+  -String currentTariff
+  -String nextTariff
+  +Resident(id, name)
+  +role() String
+  +tariff() String
+  +book(booking, interval) String
+  +book(booking, space, start, end) String
+  +changeTariff(next) String
+}
+class SpaceManager {
+  -String layout
+  +SpaceManager(id, name)
+  +role() String
+  +tariff() String
+  +manageLayout(layout) String
+}
+class Accountant {
+  +Accountant(id, name)
+  +role() String
+  +tariff() String
+  +invoice(booking) String
+}
+CoworkingMember <|-- Resident
+CoworkingMember <|-- SpaceManager
+CoworkingMember <|-- Accountant
+Resident ..|> TariffPlan
+SpaceManager ..|> TariffPlan
+Accountant ..|> TariffPlan
+note bottom of CoworkingMember : getId() final; role() abstract
+@enduml

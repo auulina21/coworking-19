@@ -3,17 +3,23 @@ import java.time.*;
 import java.util.*;
 public final class Booking {
     private final String id;
+    private AccessControl access;
     private BookingState state = BookingState.DRAFT;
     private final List<TimeInterval> intervals = new ArrayList<>();
     public Booking(String id) { this.id = Objects.requireNonNull(id); }
+    public synchronized void setAccessControl(AccessControl access) { this.access=Objects.requireNonNull(access); }
     public String getId() { return id; }
     public BookingState getState() { return state; }
     public List<TimeInterval> getIntervals() { return List.copyOf(intervals); }
     private String validate(TimeInterval t, String ignoreId) {
-        if (t == null || t.id().isBlank() || t.resident().isBlank() || t.space().isBlank() || t.start().isBlank() || t.end().isBlank()) return "Усі поля обов'язкові.";
-        if (t.id().length()>80 || t.resident().length()>120 || t.space().length()>120) return "Перевищено допустиму довжину поля.";
+        if (t == null) return "Інтервал відсутній.";
+        if (t.id().isBlank()) return "Ідентифікатор обов'язковий.";
+        if (t.resident().isBlank() || t.space().isBlank() || t.start().isBlank() || t.end().isBlank()) return "Усі поля обов'язкові.";
         LocalDateTime start, end;
-        try { start=LocalDateTime.parse(t.start()); end=LocalDateTime.parse(t.end()); }
+        try {
+            var minuteFormat=java.time.format.DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm").withResolverStyle(java.time.format.ResolverStyle.STRICT);
+            start=LocalDateTime.parse(t.start(),minuteFormat);end=LocalDateTime.parse(t.end(),minuteFormat);
+        }
         catch (RuntimeException ex) { return "Некоректний формат дати й часу."; }
         if (start.getSecond()!=0 || start.getNano()!=0 || end.getSecond()!=0 || end.getNano()!=0) return "Час задається з точністю до хвилини.";
         if (!start.isBefore(end)) return "Початок має бути раніше за кінець.";
@@ -30,9 +36,12 @@ public final class Booking {
         if (error != null) return "Відмова: "+error;
         intervals.add(t); return "Інтервал додано: "+t.id()+" ("+t.space()+").";
     }
-    public synchronized String confirm(AccessControl access) {
-        if (state != BookingState.DRAFT || intervals.isEmpty()) return "Відмова: підтвердження потребує DRAFT і хоча б одного інтервалу.";
-        String message=Objects.requireNonNull(access).grant(id);
+    public synchronized String confirm() {
+        if (state == BookingState.CONFIRMED) return "Відмова: бронювання вже підтверджено.";
+        if (state == BookingState.CANCELLED) return "Відмова: бронювання скасовано.";
+        if (intervals.isEmpty()) return "Відмова: немає інтервалів для підтвердження.";
+        if (access == null) return "Відмова: сервіс доступу не налаштовано.";
+        String message=access.grant(id);
         state=BookingState.CONFIRMED;return "Бронювання підтверджено. "+message;
     }
     public synchronized String cancel() {

@@ -11,7 +11,7 @@
   },
   {
     "name": "Resident",
-    "responsibility": "Бронювати відвідування; запланувати тариф наступного місяця",
+    "responsibility": "Бронювати відвідування; запланувати тариф наступного місяця. Допустимі тарифи BASIC/FLEX; змінюється лише nextTariff наступного місяця. Автоматичні ідентифікатори UUID.",
     "collaboration": "Booking, TimeInterval, TariffPlan"
   },
   {
@@ -36,7 +36,7 @@
   },
   {
     "name": "Booking",
-    "responsibility": "Володіти інтервалами, перевіряти правила та переходи станів; координувати збереження через абстракцію",
+    "responsibility": "Володіти інтервалами; перевіряти поля, унікальний id, час і перетини; керувати станом; одержувати AccessControl через setter і викликати його лише при підтвердженні.",
     "collaboration": "TimeInterval, BookingState, AccessControl"
   },
   {

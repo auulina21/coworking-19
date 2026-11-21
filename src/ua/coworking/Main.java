@@ -9,24 +9,41 @@ public final class Main {
         Resident resident=new Resident("R19", "Олена");
         SpaceManager manager=new SpaceManager("M19", "Андрій");
         Accountant accountant=new Accountant("A19", "Марія");
+        if(args.length>0 && args[0].equals("--cancel-draft")) {
+            System.out.println("Початковий стан: "+booking.getState());
+            System.out.println(booking.cancel());System.out.println(accountant.invoice(booking));
+            System.out.println(booking.confirm());System.out.println("Кінцевий стан: "+booking.getState());return;
+        }
         System.out.println(manager.role()+": "+manager.manageLayout("4 робочі місця, переговорна A"));
         System.out.println(manager.manageLayout(""));
         System.out.println(accountant.invoice(booking));
-        System.out.println(booking.confirm(new ConsoleAccessControl()));
+        System.out.println(booking.confirm());
         System.out.println(resident.book(booking,new TimeInterval("T19","Олена","Переговорна A","2026-12-01T09:00","2026-12-01T11:00")));
         System.out.println(resident.book(booking,new TimeInterval("T19","Олена","Місце 1","2026-12-01T12:00","2026-12-01T13:00")));
         System.out.println(resident.book(booking,new TimeInterval("OVERLAP","Олена","переговорна a","2026-12-01T10:00","2026-12-01T12:00")));
         System.out.println(resident.book(booking,new TimeInterval("BAD","Олена","Місце 2","2026-12-01T12:00","2026-12-01T11:00")));
         System.out.println(resident.book(booking,"Переговорна A","2026-12-01T11:00","2026-12-01T12:00"));
-        System.out.println(resident.book(booking,new TimeInterval("T20","Олена","Місце 1","2026-12-01T09:00","2026-12-01T10:00")));
+        System.out.println(resident.book(booking,"Місце 1","2026-12-01T11:00","2026-12-01T12:00"));
+        System.out.println(booking.add(new TimeInterval("","Олена","Зал","2026-12-01T09:00","2026-12-01T10:00")));
+        System.out.println(booking.add(new TimeInterval("BADDATE","Олена","Зал","bad","2026-12-01T10:00")));
+        System.out.println(booking.add(new TimeInterval("SECONDS","Олена","Зал","2026-12-01T09:00:01","2026-12-01T10:00")));
+        System.out.println(booking.add(new TimeInterval("ZEROSECONDS","Олена","Зал","2026-12-01T09:00:00","2026-12-01T10:00")));
+        System.out.println(booking.add(new TimeInterval("FRACTION","Олена","Зал","2026-12-01T09:00:00.000","2026-12-01T10:00")));
+        System.out.println(booking.add(new TimeInterval("EMPTYNAME","","Зал","2026-12-01T09:00","2026-12-01T10:00")));
+        System.out.println(booking.confirm());
+        System.out.println("Після відмов: стан="+booking.getState()+", інтервалів="+booking.getIntervals().size());
+        System.out.println("Автоматичні ID двох різних місць з однаковим початком: "+booking.getIntervals().get(1).id()+"; "+booking.getIntervals().get(2).id());
+        booking.setAccessControl(new ConsoleAccessControl());
         System.out.println(resident.changeTariff("FLEX"));
         System.out.println(resident.changeTariff("UNKNOWN"));
-        System.out.println(booking.confirm(new ConsoleAccessControl()));
+        System.out.println(booking.confirm());
         System.out.println(accountant.invoice(booking));
         System.out.println(booking.add(new TimeInterval("LATE","Олена","Місце 3","2026-12-01T13:00","2026-12-01T14:00")));
-        System.out.println(booking.confirm(new ConsoleAccessControl()));
+        System.out.println(booking.confirm());
         System.out.println("Прийнято інтервалів: "+booking.getIntervals().size());
         System.out.println(booking.cancel());
+        System.out.println(booking.confirm());
+        System.out.println(booking.add(new TimeInterval("CANCELLED","Олена","Зал","2026-12-03T09:00","2026-12-03T10:00")));
         System.out.println(booking.cancel());
     }
 }

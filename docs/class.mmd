@@ -4,7 +4,7 @@ class CoworkingMember {
   <<abstract>>
   -String id
   -String name
-  +CoworkingMember(id, name)
+  #CoworkingMember(id, name)
   +getId() String
   +getName() String
   +role() String
@@ -56,6 +56,8 @@ class BookingState {
   CANCELLED
 }
 class Booking {
+  -AccessControl access
+  +setAccessControl(access) void
   -String id
   -BookingState state
   -List~TimeInterval~ intervals
@@ -64,7 +66,7 @@ class Booking {
   +getIntervals() List~TimeInterval~
   +getState() BookingState
   +getId() String
-  +confirm(access) String
+  +confirm() String
   +cancel() String
   +hours() double
 }
@@ -84,10 +86,17 @@ SpaceManager ..|> TariffPlan
 Accountant ..|> TariffPlan
 Booking "1" *-- "0..*" TimeInterval : володіє
 Booking --> BookingState
-Booking ..> AccessControl : confirm
+Booking --> AccessControl : setter DI
 ConsoleAccessControl ..|> AccessControl
 Resident ..> Booking : book
 Resident ..> TimeInterval
 Accountant ..> Booking : invoice
 
 note for CoworkingMember "getId() є final; role() є abstract"
+
+note for Resident "BASIC або FLEX; changeTariff змінює лише nextTariff наступного місяця"
+note for Booking "Поля обов’язкові; id незмінний і унікальний; ISO local datetime до хвилини; start < end; [start,end) без перетинів для одного місця"
+
+note for Resident "Автоматичний id інтервалу — UUID, незалежний від місця й часу"
+
+note for Booking "getIntervals() повертає незмінну копію List.copyOf; зовнішній клієнт не змінює внутрішню колекцію"
