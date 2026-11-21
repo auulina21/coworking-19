@@ -1,0 +1,83 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam maxMessageSize 180
+skinparam wrapWidth 220
+skinparam nodesep 35
+skinparam ranksep 45
+participant "Main" as Main
+participant "Resident" as R
+participant "Booking" as B
+participant "SpaceManager" as M
+participant "Accountant" as C
+participant "Access" as A
+Main->>R: book(booking, interval)
+R->>B: add(interval)
+alt інтервал відсутній
+ B-->>R: Відмова: Інтервал відсутній. Колекція незмінна
+else id порожній
+ B-->>R: Відмова: Ідентифікатор обов’язковий. Колекція незмінна
+else id повторюється
+ B-->>R: Відмова: Ідентифікатор уже існує. Колекція незмінна
+else інші обов’язкові поля порожні
+ B-->>R: Відмова: Усі поля обов’язкові. Колекція незмінна
+else дата невалідна
+ B-->>R: Відмова: Некоректний формат дати й часу. Колекція незмінна
+else секунди або дробові частини задано явно
+ B-->>R: Відмова: Некоректний формат дати й часу. Колекція незмінна
+else start не раніше end
+ B-->>R: Відмова: Початок має бути раніше за кінець. Колекція незмінна
+else перетин на одному місці
+ B-->>R: Відмова: Місце вже зайняте в цей час. Колекція незмінна
+else CONFIRMED або CANCELLED
+ B-->>R: Відмова: зміни дозволені лише в DRAFT. Колекція незмінна
+else коректний вільний інтервал
+ note over B: Суміжні інтервали та різні місця з однаковим часом дозволені
+ B-->>R: Інтервал додано
+end
+R-->>Main: результат book()
+newpage
+Main->>B: confirm()
+alt CONFIRMED
+ B-->>Main: Відмова: бронювання вже підтверджено
+else CANCELLED
+ B-->>Main: Відмова: бронювання скасовано
+else немає інтервалів
+ B-->>Main: Відмова: немає інтервалів для підтвердження
+else AccessControl не впроваджено
+ B-->>Main: Відмова: сервіс доступу не налаштовано; DRAFT збережено
+ Main->>B: setAccessControl(access)
+ Main->>B: confirm()
+ B->>A: grant(bookingId)
+ A-->>B: Імітаційний доступ надано
+ B-->>Main: Бронювання підтверджено
+else DRAFT, є інтервали та сервіс
+ B->>A: grant(bookingId)
+ A-->>B: Імітаційний доступ надано
+ B-->>Main: Бронювання підтверджено
+end
+newpage
+Main->>M: manageLayout(layout)
+alt порожня назва
+ M-->>Main: Відмова: план не може бути порожнім
+else коректна назва
+ M-->>Main: План розміщення замінено
+end
+Main->>R: changeTariff(next)
+alt BASIC або FLEX
+ R-->>Main: nextTariff змінено; currentTariff незмінний
+else інший тариф
+ R-->>Main: Відмова: тариф має бути BASIC або FLEX; обидва тарифи незмінні
+end
+Main->>C: invoice(booking)
+C->>B: getState()
+alt CONFIRMED
+ C->>B: hours()
+ B-->>C: тривалість
+ C-->>Main: Імітаційний рахунок: hours * 150 грн
+else DRAFT або CANCELLED
+ C-->>Main: Відмова: рахунок доступний лише після підтвердження
+end
+note over Main: Main друкує отримані відповіді через System.out
+@enduml
